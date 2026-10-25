@@ -58,39 +58,30 @@ export default partsSlice.reducer
 
 export const selectParts = (state) => state.parts
 
-// Одна строка таблицы = одно предложение (товар на конкретном складе).
-// Товары без остатков тоже показываем, чтобы было видно, что аналог существует.
+// Одна строка таблицы = одна позиция (товар). Цена — минимальная среди складов
+// с остатком (поле price у товара API просит не использовать), остаток — по всем складам.
+// Разбивка по складам хранится в строке и показывается при раскрытии.
 export const selectOfferRows = createSelector(
   (state) => state.parts.offers.items,
   (items) =>
     items
-      .flatMap((item) =>
-        item.warehouses?.length
-          ? item.warehouses.map((wh) => ({
-              key: `${item.goodsID}-${wh.id}`,
-              brand: item.brand,
-              number: item.number,
-              name: item.name,
-              isOriginal: Boolean(item.isOriginal),
-              warehouse: wh.code || '—',
-              price: wh.price,
-              stock: wh.stock,
-              shipmentDate: wh.shipmentDate,
-            }))
-          : [
-              {
-                key: item.goodsID,
-                brand: item.brand,
-                number: item.number,
-                name: item.name,
-                isOriginal: Boolean(item.isOriginal),
-                warehouse: '—',
-                price: null,
-                stock: 0,
-                shipmentDate: null,
-              },
-            ],
-      )
+      .map((item) => {
+        const warehouses = [...(item.warehouses || [])].sort((a, b) => a.price - b.price)
+        const available = warehouses.filter((wh) => wh.stock > 0)
+        const priced = available.length ? available : warehouses
+        const dates = available.map((wh) => wh.shipmentDate).filter(Boolean).sort()
+        return {
+          key: item.goodsID,
+          brand: item.brand,
+          number: item.number,
+          name: item.name,
+          isOriginal: Boolean(item.isOriginal),
+          price: priced.length ? priced[0].price : null,
+          stock: item.count,
+          warehouses,
+          nearestShipment: dates[0] || null,
+        }
+      })
       // Сначала искомая деталь, затем то, что есть в наличии, внутри — по цене.
       .sort(
         (a, b) =>
