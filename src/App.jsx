@@ -3,19 +3,25 @@ import Breadcrumbs from './features/parts/Breadcrumbs'
 import BrandList from './features/parts/BrandList'
 import OffersTable from './features/parts/OffersTable'
 
+const CONTAINER_STYLE = { maxWidth: 1100 }
+
 export default function App() {
   return (
-    <div className="container py-4" style={{ maxWidth: 1100 }}>
-      <header className="mb-4">
-        <h1 className="h3 mb-1">Подбор автозапчастей</h1>
-        <p className="text-secondary mb-0">
-          Введите артикул, выберите производителя — покажем аналоги, цены и остатки по складам.
-        </p>
+    <>
+      <header className="app-header py-4 mb-4">
+        <div className="container" style={CONTAINER_STYLE}>
+          <h1 className="h3 mb-1">Подбор автозапчастей</h1>
+          <p className="subtitle mb-0">
+            Введите артикул, выберите производителя — покажем аналоги, цены и остатки по складам.
+          </p>
+        </div>
       </header>
-      <SearchForm />
-      <Breadcrumbs />
-      <BrandList />
-      <OffersTable />
-    </div>
+      <main className="container pb-4" style={CONTAINER_STYLE}>
+        <SearchForm />
+        <Breadcrumbs />
+        <BrandList />
+        <OffersTable />
+      </main>
+    </>
   )
 }

@@ -1,3 +1,83 @@
+/* ---------- Тема в цветах Фаворита (переопределяем переменные Bootstrap) ---------- */
+:root {
+  --brand: #035aa4;
+  --brand-rgb: 3, 90, 164;
+  --brand-hover: #024a88;
+  --brand-dark: #202f45;
+  --brand-focus-border: #81acd1;
+  --page-bg: #eff1fa;
+
+  --bs-primary: var(--brand);
+  --bs-primary-rgb: var(--brand-rgb);
+  --bs-link-color: var(--brand);
+  --bs-link-color-rgb: var(--brand-rgb);
+  --bs-link-hover-color: var(--brand-hover);
+  --bs-border-radius: 0.25rem;
+  --bs-border-radius-lg: 0.25rem;
+  --bs-border-radius-sm: 0.2rem;
+}
+
+body {
+  background-color: var(--page-bg);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand-hover);
+  --bs-btn-hover-border-color: var(--brand-hover);
+  --bs-btn-active-bg: var(--brand-hover);
+  --bs-btn-active-border-color: var(--brand-hover);
+  --bs-btn-focus-shadow-rgb: var(--brand-rgb);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand);
+  --bs-btn-hover-border-color: var(--brand);
+  --bs-btn-active-bg: var(--brand-hover);
+  --bs-btn-active-border-color: var(--brand-hover);
+  --bs-btn-focus-shadow-rgb: var(--brand-rgb);
+}
+
+.btn-link {
+  --bs-btn-color: var(--brand);
+  --bs-btn-hover-color: var(--brand-hover);
+}
+
+.list-group {
+  --bs-list-group-active-bg: var(--brand);
+  --bs-list-group-active-border-color: var(--brand);
+}
+
+.form-check-input:checked {
+  background-color: var(--brand);
+  border-color: var(--brand);
+}
+
+.form-control:focus,
+.form-check-input:focus {
+  border-color: var(--brand-focus-border);
+  box-shadow: 0 0 0 0.25rem rgba(var(--brand-rgb), 0.25);
+}
+
+.form-switch .form-check-input:focus:not(:checked) {
+  --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%2381acd1'/%3e%3c/svg%3e");
+}
+
+/* Тёмная шапка, как на сайте компании */
+.app-header {
+  background-color: var(--brand-dark);
+  color: #fff;
+}
+
+.app-header .subtitle {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Поиск ---------- */
+
 /* Общая обводка фокуса на поле и кнопку поиска, а не только на поле */
 .search-group {
   border-radius: var(--bs-border-radius-lg);
@@ -5,7 +85,7 @@
 }
 
 .search-group:focus-within {
-  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(var(--brand-rgb), 0.25);
 }
 
 /* Кнопка очистки выглядит как часть поля */
@@ -17,6 +97,7 @@
   align-items: center;
   padding-inline: 0.875rem;
   cursor: pointer;
+  transition: border-color 0.15s ease-in-out;
 }
 
 .search-clear:hover {
@@ -24,17 +105,22 @@
   background-color: var(--bs-body-bg);
 }
 
+/* В фокусе поле и крестик — одна рамка, без обрыва на стыке */
+.search-group:focus-within .search-clear {
+  border-color: var(--brand-focus-border) !important;
+}
+
 .search-group .form-control:focus,
 .search-group .btn:focus-visible {
   box-shadow: none;
 }
 
-/* Фокус с клавиатуры в стиле Bootstrap вместо системной (оранжевой) обводки */
+/* ---------- Фокус с клавиатуры в стиле темы вместо системной (оранжевой) обводки ---------- */
 .list-group-item-action:focus-visible,
 .btn-link:focus-visible,
 tbody tr button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(var(--brand-rgb), 0.25);
   z-index: 3;
 }
 
