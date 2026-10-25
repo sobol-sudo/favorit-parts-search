@@ -10,6 +10,12 @@ export default function SearchForm() {
   const [value, setValue] = useState('')
   const requestRef = useRef(null)
   const lastNumberRef = useRef('')
+  const inputRef = useRef(null)
+
+  const clear = () => {
+    setValue('')
+    inputRef.current?.focus()
+  }
 
   const search = (number) => {
     // Enter и debounce не должны отправлять один и тот же запрос дважды.
@@ -46,15 +52,32 @@ export default function SearchForm() {
       </label>
       <div className="input-group input-group-lg search-group">
         <input
+          ref={inputRef}
           id="article"
-          type="search"
-          className="form-control"
+          type="text"
+          inputMode="search"
+          enterKeyHint="search"
+          className={`form-control ${value ? 'border-end-0' : ''}`}
           placeholder="Например, 7160500039S или 01089"
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === 'Escape' && clear()}
           autoComplete="off"
+          spellCheck={false}
           autoFocus
         />
+        {/* Своя кнопка очистки: одинаковая во всех браузерах (в Firefox нативной нет) */}
+        {value && (
+          <button
+            type="button"
+            className="btn search-clear border border-start-0"
+            aria-label="Очистить поле"
+            title="Очистить"
+            onClick={clear}
+          >
+            ×
+          </button>
+        )}
         <button type="submit" className="btn btn-primary px-4">
           Найти
         </button>
