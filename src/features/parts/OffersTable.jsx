@@ -44,8 +44,8 @@ export default function OffersTable() {
 
   return (
     <section ref={sectionRef} style={{ scrollMarginTop: 16 }}>
-      <h2 className="h5 mb-3">
-        Шаг 2. Предложения для {selectedBrand} {number}
+      <h2 className="visually-hidden">
+        Предложения для {selectedBrand} {number}
       </h2>
 
       {offers.status === 'loading' && <Loader text="Загружаем аналоги и остатки…" />}

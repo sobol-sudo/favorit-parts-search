@@ -21,6 +21,11 @@ const partsSlice = createSlice({
   initialState,
   reducers: {
     resetSearch: () => initialState,
+    // Назад к списку производителей. Сброс requestId заодно отбрасывает ещё не пришедший ответ.
+    clearBrand: (state) => {
+      state.selectedBrand = null
+      state.offers = initialState.offers
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -53,7 +58,7 @@ const partsSlice = createSlice({
   },
 })
 
-export const { resetSearch } = partsSlice.actions
+export const { resetSearch, clearBrand } = partsSlice.actions
 export default partsSlice.reducer
 
 export const selectParts = (state) => state.parts

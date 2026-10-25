@@ -1,4 +1,5 @@
 import SearchForm from './features/parts/SearchForm'
+import Breadcrumbs from './features/parts/Breadcrumbs'
 import BrandList from './features/parts/BrandList'
 import OffersTable from './features/parts/OffersTable'
 
@@ -12,6 +13,7 @@ export default function App() {
         </p>
       </header>
       <SearchForm />
+      <Breadcrumbs />
       <BrandList />
       <OffersTable />
     </div>
