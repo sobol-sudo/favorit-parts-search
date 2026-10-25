@@ -44,11 +44,11 @@ export default function SearchForm() {
       <label htmlFor="article" className="form-label fw-semibold">
         Артикул детали
       </label>
-      <div className="input-group">
+      <div className="input-group input-group-lg search-group">
         <input
           id="article"
           type="search"
-          className="form-control form-control-lg"
+          className="form-control"
           placeholder="Например, 7160500039S или 01089"
           value={value}
           onChange={(e) => setValue(e.target.value)}
