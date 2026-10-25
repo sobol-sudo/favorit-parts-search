@@ -2,15 +2,12 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import Loader from '../../components/Loader'
 import ErrorAlert from '../../components/ErrorAlert'
+import OriginalCard from './OriginalCard'
+import WarehouseList from './WarehouseList'
+import { formatDate, formatPrice, formatShipment } from './format'
 import { fetchOffers, selectOfferRows, selectParts } from './partsSlice'
 
 const PAGE_SIZE = 50
-
-const priceFormat = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' })
-const dateFormat = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit' })
-
-const formatPrice = (price) => (price != null ? priceFormat.format(price) : '—')
-const formatDate = (date) => (date ? dateFormat.format(new Date(date)) : '—')
 
 export default function OffersTable() {
   const dispatch = useDispatch()
@@ -39,14 +36,16 @@ export default function OffersTable() {
 
   if (!selectedBrand) return null
 
-  const filtered = onlyInStock ? rows.filter((row) => row.stock > 0 || row.isOriginal) : rows
+  const original = rows.find((row) => row.isOriginal)
+  const analogues = rows.filter((row) => !row.isOriginal)
+  const filtered = onlyInStock ? analogues.filter((row) => row.stock > 0) : analogues
   const shown = filtered.slice(0, visible)
-  const inStockCount = rows.filter((row) => row.stock > 0).length
+  const inStockCount = analogues.filter((row) => row.stock > 0).length
 
   return (
     <section ref={sectionRef} style={{ scrollMarginTop: 16 }}>
       <h2 className="h5 mb-3">
-        Шаг 2. Аналоги и предложения для {selectedBrand} {number}
+        Шаг 2. Предложения для {selectedBrand} {number}
       </h2>
 
       {offers.status === 'loading' && <Loader text="Загружаем аналоги и остатки…" />}
@@ -59,15 +58,24 @@ export default function OffersTable() {
       )}
 
       {offers.status === 'succeeded' && !rows.length && (
-        <div className="alert alert-secondary">Аналогов и предложений не найдено.</div>
+        <div className="alert alert-secondary">Предложений не найдено.</div>
       )}
 
-      {offers.status === 'succeeded' && rows.length > 0 && (
+      {offers.status === 'succeeded' && original && <OriginalCard item={original} />}
+
+      {offers.status === 'succeeded' && original && !analogues.length && (
+        <div className="alert alert-secondary">Аналогов других производителей не найдено.</div>
+      )}
+
+      {offers.status === 'succeeded' && analogues.length > 0 && (
         <>
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-            <span className="text-secondary">
-              Позиций: {rows.length}, в наличии: {inStockCount}
-            </span>
+            <h3 className="h6 mb-0">
+              Аналоги других производителей{' '}
+              <span className="text-secondary fw-normal">
+                ({analogues.length}, в наличии {inStockCount})
+              </span>
+            </h3>
             <div className="form-check form-switch mb-0">
               <input
                 id="only-in-stock"
@@ -87,109 +95,102 @@ export default function OffersTable() {
             </div>
           </div>
 
-          <div className="table-responsive">
-            <table className="table table-sm table-hover align-middle">
-              <thead className="table-light">
-                <tr>
-                  <th>Производитель</th>
-                  <th className="d-none d-md-table-cell">Номер</th>
-                  <th className="d-none d-md-table-cell">Название</th>
-                  <th className="text-end">Цена</th>
-                  <th className="text-end">
-                    <span className="d-none d-md-inline">Остаток</span>
-                    <span className="d-md-none">Ост.</span>
-                  </th>
-                  <th className="text-end d-none d-md-table-cell">Отгрузка</th>
-                  <th>
-                    <span className="visually-hidden">Склады</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {shown.map((row) => {
-                  const isOpen = expanded === row.key
-                  const canExpand = row.warehouses.length > 0
-                  return (
-                    <Fragment key={row.key}>
-                      <tr
-                        className={row.stock > 0 ? '' : 'text-secondary'}
-                        style={{ cursor: canExpand ? 'pointer' : 'default' }}
-                        onClick={() => canExpand && setExpanded(isOpen ? null : row.key)}
-                      >
-                        <td>
-                          <strong className="text-break">{row.brand}</strong>
-                          {row.isOriginal && <span className="badge text-bg-primary ms-2">искомая</span>}
-                          {/* На узких экранах номер и название — под производителем */}
-                          <div className="d-md-none small">
-                            <div className="text-secondary">{row.number}</div>
-                            <div>{row.name}</div>
-                          </div>
-                        </td>
-                        <td className="text-nowrap d-none d-md-table-cell">{row.number}</td>
-                        <td className="d-none d-md-table-cell">{row.name}</td>
-                        <td className="text-end text-nowrap">
-                          {row.price != null && row.warehouses.length > 1 && (
-                            <span className="d-block d-md-inline small text-secondary me-md-1">от</span>
-                          )}
-                          {formatPrice(row.price)}
-                        </td>
-                        <td className="text-end text-nowrap">
-                          {row.stock > 0 ? (
-                            <>
-                              {row.stock}
-                              <span className="d-none d-md-inline"> шт.</span>
-                            </>
-                          ) : (
-                            'нет'
-                          )}
-                        </td>
-                        <td className="text-end d-none d-md-table-cell">{formatDate(row.nearestShipment)}</td>
-                        <td className="text-end text-nowrap text-secondary small">
-                          {canExpand && (
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-link text-decoration-none p-0"
-                              aria-expanded={isOpen}
-                              aria-label={`Склады (${row.warehouses.length})`}
-                            >
-                              <span className="d-none d-md-inline">{row.warehouses.length} скл. </span>
-                              {isOpen ? '▲' : '▼'}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                      {isOpen && (
-                        <tr className="table-light">
-                          <td colSpan={7} className="p-0">
-                            <table className="table table-sm mb-0">
-                              <thead>
-                                <tr>
-                                  <th className="ps-4">Склад</th>
-                                  <th className="text-end">Цена</th>
-                                  <th className="text-end">Остаток</th>
-                                  <th className="text-end pe-4">Отгрузка</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {row.warehouses.map((wh) => (
-                                  <tr key={wh.id + wh.shipmentDate}>
-                                    <td className="ps-4">{wh.code || '—'}</td>
-                                    <td className="text-end text-nowrap">{formatPrice(wh.price)}</td>
-                                    <td className="text-end">{wh.stock} шт.</td>
-                                    <td className="text-end pe-4">{formatDate(wh.shipmentDate)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+          {!filtered.length && (
+            <div className="alert alert-secondary">
+              Аналогов в наличии нет — выключите фильтр, чтобы увидеть все.
+            </div>
+          )}
+
+          {filtered.length > 0 && (
+            <div className="table-responsive">
+              <table className="table table-sm table-hover align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th>Производитель</th>
+                    <th className="d-none d-md-table-cell">Номер</th>
+                    <th className="d-none d-md-table-cell">Название</th>
+                    <th className="text-end">Цена</th>
+                    <th className="text-end">
+                      <span className="d-none d-md-inline">Остаток</span>
+                      <span className="d-md-none">Ост.</span>
+                    </th>
+                    <th className="text-end d-none d-md-table-cell">Срок</th>
+                    <th>
+                      <span className="visually-hidden">Склады</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shown.map((row) => {
+                    const isOpen = expanded === row.key
+                    const canExpand = row.warehouses.length > 0
+                    return (
+                      <Fragment key={row.key}>
+                        <tr
+                          className={row.stock > 0 ? '' : 'text-secondary'}
+                          style={{ cursor: canExpand ? 'pointer' : 'default' }}
+                          onClick={() => canExpand && setExpanded(isOpen ? null : row.key)}
+                        >
+                          <td>
+                            <strong className="text-break">{row.brand}</strong>
+                            {/* На узких экранах номер и название — под производителем */}
+                            <div className="d-md-none small">
+                              <div className="text-secondary">{row.number}</div>
+                              <div>{row.name}</div>
+                            </div>
+                          </td>
+                          <td className="text-nowrap d-none d-md-table-cell">{row.number}</td>
+                          <td className="d-none d-md-table-cell">{row.name}</td>
+                          <td className="text-end text-nowrap">
+                            {row.price != null && row.warehouses.length > 1 && (
+                              <span className="d-block d-md-inline small text-secondary me-md-1">от</span>
+                            )}
+                            <strong>{formatPrice(row.price)}</strong>
+                          </td>
+                          <td className="text-end text-nowrap">
+                            {row.stock > 0 ? (
+                              <>
+                                {row.stock}
+                                <span className="d-none d-md-inline"> шт.</span>
+                              </>
+                            ) : (
+                              'нет'
+                            )}
+                          </td>
+                          <td
+                            className="text-end text-nowrap text-secondary d-none d-md-table-cell"
+                            title={formatDate(row.nearestShipment)}
+                          >
+                            {row.nearestShipment ? formatShipment(row.nearestShipment) : '—'}
+                          </td>
+                          <td className="text-end text-nowrap small">
+                            {canExpand && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-link text-decoration-none p-0"
+                                aria-expanded={isOpen}
+                                aria-label={`Склады (${row.warehouses.length})`}
+                              >
+                                <span className="d-none d-md-inline">{row.warehouses.length} скл. </span>
+                                {isOpen ? '▲' : '▼'}
+                              </button>
+                            )}
                           </td>
                         </tr>
-                      )}
-                    </Fragment>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        {isOpen && (
+                          <tr className="table-light">
+                            <td colSpan={7} className="px-3 py-1">
+                              <WarehouseList warehouses={row.warehouses} />
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {filtered.length > visible && (
             <div className="text-center mb-4">
