@@ -9,8 +9,12 @@ export default function SearchForm() {
   const dispatch = useDispatch()
   const [value, setValue] = useState('')
   const requestRef = useRef(null)
+  const lastNumberRef = useRef('')
 
   const search = (number) => {
+    // Enter и debounce не должны отправлять один и тот же запрос дважды.
+    if (number === lastNumberRef.current) return
+    lastNumberRef.current = number
     requestRef.current?.abort()
     requestRef.current = dispatch(fetchBrands(number))
   }
@@ -20,6 +24,7 @@ export default function SearchForm() {
     const number = value.trim()
     if (number.length < MIN_LENGTH) {
       requestRef.current?.abort()
+      lastNumberRef.current = ''
       dispatch(resetSearch())
       return
     }

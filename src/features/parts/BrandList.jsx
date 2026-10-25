@@ -12,6 +12,8 @@ export default function BrandList() {
   if (brands.status === 'failed') {
     return <ErrorAlert message={brands.error} onRetry={() => dispatch(fetchBrands(number))} />
   }
+
+  const selectBrand = (item) => dispatch(fetchOffers({ number: item.number, brand: item.brand }))
   if (!brands.items.length) {
     return (
       <div className="alert alert-secondary">
@@ -34,7 +36,8 @@ export default function BrandList() {
             className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${
               item.brand === selectedBrand ? 'active' : ''
             }`}
-            onClick={() => dispatch(fetchOffers({ number: item.number, brand: item.brand }))}
+            aria-current={item.brand === selectedBrand ? 'true' : undefined}
+            onClick={() => selectBrand(item)}
           >
             <span>
               <strong>{item.brand}</strong>
